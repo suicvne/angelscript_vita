@@ -9,7 +9,23 @@
 #include "../../../add_on/scriptbuilder/scriptbuilder.h"
 #include "../../../add_on/weakref/weakref.h"
 
+/** Modifications 10-7-2021 **/
+/** as discussed in main.cpp, I needed to override cout and redirect it to 
+ *  Vita's libdebugnet. By defining these symbols as extern, we indicate that we have
+ *  unknown symbols in another file we want to load with this signature. The linker
+ *  takes care of the rest.
+**/
+#ifndef VITA
 using namespace std;
+#endif
+
+#ifdef VITA
+extern struct VitaCout cout;
+extern VitaCout& operator<<(VitaCout& out, const char* input);
+extern VitaCout& operator<<(VitaCout& out, const std::string &msg);
+extern VitaCout& operator<<(VitaCout& out, std::ostream& (*pf)(std::ostream&));
+extern VitaCout& operator<<(VitaCout& out, const int &msg);
+#endif
 
 CScriptMgr::CScriptMgr()
 {
@@ -108,13 +124,13 @@ void CScriptMgr::MessageCallback(const asSMessageInfo &msg)
 	else if( msg.type == asMSGTYPE_INFORMATION ) 
 		type = "INFO";
 
-	cout << msg.section << " (" << msg.row << ", " << msg.col << ") : " << type << " : " << msg.message << endl;
+	cout << msg.section << " (" << msg.row << ", " << msg.col << ") : " << type << " : " << msg.message << std::endl;
 
 	if( msg.type == asMSGTYPE_ERROR )
 		hasCompileErrors = true;
 }
 
-CScriptMgr::SController *CScriptMgr::GetControllerScript(const string &script)
+CScriptMgr::SController *CScriptMgr::GetControllerScript(const std::string &script)
 {
 	int r;
 
@@ -186,7 +202,7 @@ CScriptMgr::SController *CScriptMgr::GetControllerScript(const string &script)
 
 	if( ctrl->type == 0 )
 	{
-		cout << "Couldn't find the controller class for the type '" << script << "'" << endl;
+		cout << "Couldn't find the controller class for the type '" << script << "'" << std::endl;
 		controllers.pop_back();
 		delete ctrl;
 		return 0;
@@ -194,11 +210,11 @@ CScriptMgr::SController *CScriptMgr::GetControllerScript(const string &script)
 
 	// Find the factory function
 	// The game engine will pass in the owning CGameObj to the controller for storage
-	string s = string(type->GetName()) + "@ " + string(type->GetName()) + "(CGameObj @)";
+	std::string s = std::string(type->GetName()) + "@ " + std::string(type->GetName()) + "(CGameObj @)";
 	ctrl->factoryFunc = type->GetFactoryByDecl(s.c_str());
 	if( ctrl->factoryFunc == 0 )
 	{
-		cout << "Couldn't find the appropriate factory for the type '" << script << "'" << endl;
+		cout << "Couldn't find the appropriate factory for the type '" << script << "'" << std::endl;
 		controllers.pop_back();
 		delete ctrl;
 		return 0;
@@ -214,7 +230,7 @@ CScriptMgr::SController *CScriptMgr::GetControllerScript(const string &script)
 	return ctrl;
 }
 
-asIScriptObject *CScriptMgr::CreateController(const string &script, CGameObj *gameObj)
+asIScriptObject *CScriptMgr::CreateController(const std::string &script, CGameObj *gameObj)
 {
 	int r;
 	asIScriptObject *obj = 0;
@@ -286,9 +302,9 @@ int CScriptMgr::ExecuteCall(asIScriptContext *ctx)
 	{
 		if( r == asEXECUTION_EXCEPTION )
 		{
-			cout << "Exception: " << ctx->GetExceptionString() << endl;
-			cout << "Function: " << ctx->GetExceptionFunction()->GetDeclaration() << endl;
-			cout << "Line: " << ctx->GetExceptionLineNumber() << endl;
+			cout << "Exception: " << ctx->GetExceptionString() << std::endl;
+			cout << "Function: " << ctx->GetExceptionFunction()->GetDeclaration() << std::endl;
+			cout << "Line: " << ctx->GetExceptionLineNumber() << std::endl;
 
 			// It is possible to print more information about the location of the 
 			// exception, for example the call stack, values of variables, etc if 

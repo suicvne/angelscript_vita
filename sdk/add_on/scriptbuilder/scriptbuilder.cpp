@@ -1004,8 +1004,23 @@ const char *CScriptBuilder::GetMetadataStringForTypeMethod(int typeId, asIScript
 }
 #endif
 
+/**
+ * Modification 10/7/2021 
+ * 
+ * GetAbsolutePath():
+ * 	I'm not 100% sure on these mods, it seems to work fine for 
+ *  referencing scripts relatively. AngelScript provides its own 
+ *  resolver and needs to be able to get the proper directory path.
+ * 
+ * GetCurrentDir():
+ * 	getcwd is not available on Vita, so we're just returning
+ *  "app0:" for the current dir.
+ */
 string GetAbsolutePath(const string &file)
 {
+#ifdef VITA
+	return GetCurrentDir() + file;
+#endif
 	string str = file;
 
 	// If this is a relative path, complement it with the current path
@@ -1090,6 +1105,9 @@ string GetCurrentDir()
 	#endif // _MSC_VER
 #elif defined(__APPLE__) || defined(__linux__)
 	return getcwd(buffer, 1024);
+#elif defined(VITA) || defined(PSP2) || defined(__psp2__)
+	(void)buffer; // suppress warnings related to unused char buffer.
+	return "app0:"; // return default relative directory for PS Vita.
 #else
 	return "";
 #endif
