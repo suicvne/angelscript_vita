@@ -110,7 +110,11 @@ int main(int argc, char **argv)
 	/** Modification 10/7/2021 **/
 	/** (For this app, anyway) Vita needs app0: to understand that its relative directory is there. **/	
 	/** TODO: Properly resolve relative paths? **/
+#ifdef VITA
 	FILE *f = fopen("app0:player.as", "r");
+#else
+	FILE *f = fopen("player.as", "r");
+#endif
 	if( f == 0 )
 	{
 		cout << "The game is not executed in the correct location. Make sure you set the working directory to the path where the 'player.as' script is located." << std::endl;
