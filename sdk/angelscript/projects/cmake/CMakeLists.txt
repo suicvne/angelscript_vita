@@ -103,7 +103,15 @@ if(MSVC AND CMAKE_CL_64)
     endif()
 endif()
 
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+# Modification 10-7-2021 
+# Defining Vita specific flags, just in case.
+if(VITA)
+    add_definitions(" -g -O0 -DVITA -DPSP2 -D__psp2__")
+endif()
+# End Modification
+
+# Modification 10-7-2021: Don't believe adding "OR VITA" here is neccessary.
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm" OR VITA)
     enable_language(ASM)
     if(CMAKE_ASM_COMPILER_WORKS)
         set(ANGELSCRIPT_SOURCE ${ANGELSCRIPT_SOURCE} ../../source/as_callfunc_arm.cpp ../../source/as_callfunc_arm_gcc.S)
@@ -122,8 +130,10 @@ endif()
 
 add_definitions(-DANGELSCRIPT_EXPORT -D_LIB)
 
+# Modification 10-7-2021
+# Vita does NOT like the -fPIC flag. I don't even bother with it.
 # Fix x64 issues on Linux
-if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" AND NOT APPLE)
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" AND NOT APPLE AND NOT VITA)
     add_definitions(-fPIC)
 endif()
 
@@ -161,4 +171,19 @@ endif()
 # Don't override the default runtime output path to avoid conflicts when building for multiple target platforms
 #set(RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../../bin)
 
+# Modification 10-7-2021
+# Installing Angelscript as static library to Vita prefix.
 
+if(VITA)
+    include(GNUInstallDirs)
+    install(TARGETS ${ANGELSCRIPT_LIBRARY_NAME}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/angelscript
+    )
+
+    install(FILES ${ANGELSCRIPT_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/angelscript)
+endif()
+
+# End Modification

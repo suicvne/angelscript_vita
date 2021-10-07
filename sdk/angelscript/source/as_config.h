@@ -604,17 +604,50 @@
 	#define UNREACHABLE_RETURN
 #endif
 
+/**
+ * Modification 10/7/2021
+ * VITASDK uses GNUC, which is why simply defining all the official SDK flags will NOT work.
+ */
+
 // GNU C (and MinGW or Cygwin on Windows)
 // Use the following command to determine predefined macros: echo . | g++ -dM -E -
 // MSVC2015 can now use CLang too, but it shouldn't go in here
 #if (defined(__GNUC__) && !defined(__SNC__) && !defined(_MSC_VER)) || defined(EPPC) || defined(__CYGWIN__) // JWC -- use this instead for Wii
 	#define GNU_STYLE_VIRTUAL_METHOD
+
+
+	#ifdef __psp2__
+		#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_CLASS_COPY_CONSTRUCTOR)
+		#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_CLASS_COPY_CONSTRUCTOR)
+
+		// These Flags copied DIRECTLY from the __psp2__ section above.
+
+		
+		#define THISCALL_RETURN_SIMPLE_IN_MEMORY
+		#define CDECL_RETURN_SIMPLE_IN_MEMORY
+		#define STDCALL_RETURN_SIMPLE_IN_MEMORY
+
+		#undef THISCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE
+		#define THISCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+		
+		#undef CDECL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE
+		#define CDECL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+
+		#undef STDCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE
+		#define STDCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+		
+	#else
+		#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_ARRAY)
+		#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_ARRAY)
+	#endif
+
+
+
 	#define MULTI_BASE_OFFSET(x) (*((asPWORD*)(&x)+1))
 	#define asVSNPRINTF(a, b, c, d) vsnprintf(a, b, c, d)
 	#define CALLEE_POPS_HIDDEN_RETURN_POINTER
 	#define COMPLEX_OBJS_PASSED_BY_REF
-	#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_ARRAY)
-	#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_ARRAY)
+	
 	#define AS_NO_MEMORY_H
 	#define AS_SIZEOF_BOOL 1
 	#define STDCALL __attribute__((stdcall))
@@ -1131,7 +1164,17 @@
 			// Only with GCC 4.1 was the atomic instructions available
 			#define AS_NO_ATOMIC
 		#endif
+	/* Modification added 10/7/2021 */
+	/* Again, these flags are copied from the _SN_ section above. */
+	#elif defined(__psp2__) || defined(VITA)
+		#define AS_PSVITA
+		#define AS_ARM
+		#define AS_NO_MEMORY_H
+		#define AS_NO_EXCEPTIONS
+		#define AS_CALLEE_DESTROY_OBJ_BY_VAL
+		#undef AS_NO_THISCALL_FUNCTOR_METHOD
 	#endif
+	/* Modification added 10/7/2021 */
 
 	#define UNREACHABLE_RETURN
 #endif
